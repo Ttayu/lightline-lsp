@@ -5,7 +5,7 @@ let s:indicator = {
       \ 'error': get(g:, 'lightline#lsp#indicator_errors', 'E: '),
       \ 'ok': get(g:, 'lightline#lsp#indicator_ok', 'OK'),
       \ }
-let s:update_in_insert = get(g:, 'lightline#lsp#update_in_insert', v:false)
+let s:update_in_insert = get(g:, 'lightline#lsp#update_in_insert', v:true)
 
 if !exists('s:message')
   let s:message = {}
@@ -56,7 +56,7 @@ function! s:linted() abort
 endfunction
 
 function! s:skip_update_in_insert() abort
-  return s:update_in_insert && mode() == 'i'
+  return !s:update_in_insert && mode() == 'i'
 endfunction
 
 function! s:counts(level) abort
