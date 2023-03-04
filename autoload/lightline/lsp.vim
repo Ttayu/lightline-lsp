@@ -7,57 +7,29 @@ let s:indicator = {
       \ }
 let s:update_in_insert = get(g:, 'lightline#lsp#update_in_insert', v:false)
 
-for level in ['hint', 'info', 'warn', 'error', 'ok']
-  if !exists('s:' . level)
-    let s:level = ''
-  endif
-endfor
-
+if !exists('s:message')
+  let s:message = {}
+  for level in ['hint', 'info', 'warn', 'error', 'ok']
+    let s:message[level] = ''
+  endfor
+endif
 """"""""""""""""""""""
 " Lightline components
 
 function! lightline#lsp#hints() abort
-  if !s:linted()
-    return ''
-  endif
-  if s:skip_update_in_insert()
-    return s:hint
-  endif
-  let s:hint = s:message('hint')
-  return s:hint
+  return s:status('hint')
 endfunction
 
 function! lightline#lsp#infos() abort
-  if !s:linted()
-    return ''
-  endif
-  if s:skip_update_in_insert()
-    return s:info
-  endif
-  let s:info = s:message('info')
-  return s:info
+  return s:status('info')
 endfunction
 
 function! lightline#lsp#warnings() abort
-  if !s:linted()
-    return ''
-  endif
-  if s:skip_update_in_insert()
-    return s:warn
-  endif
-  let s:warn = s:message('warn')
-  return s:warn
+  return s:status('warn')
 endfunction
 
 function! lightline#lsp#errors() abort
-  if !s:linted()
-    return ''
-  endif
-  if s:skip_update_in_insert()
-    return s:error
-  endif
-  let s:error = s:message('error')
-  return s:error
+  return s:status('error')
 endfunction
 
 function! lightline#lsp#ok() abort
@@ -65,16 +37,15 @@ function! lightline#lsp#ok() abort
     return ''
   endif
   if s:skip_update_in_insert()
-    return s:ok
+    return s:message['ok']
   endif
-  echom s:ok
   let l:hint_counts = s:counts('hint')
   let l:info_counts = s:counts('info')
   let l:warn_counts = s:counts('warn')
   let l:error_counts = s:counts('error')
   let l:counts = l:hint_counts+l:info_counts+l:warn_counts+l:error_counts
-  let s:ok = l:counts == 0 ? s:indicator_ok : ''
-  return s:ok
+  let s:message['ok'] = l:counts == 0 ? s:indicator['ok'] : ''
+  return s:message['ok']
 endfunction
 
 """"""""""""""""""
@@ -93,8 +64,19 @@ function! s:counts(level) abort
   return l:counts
 endfunction
 
-function! s:message(level) abort
+function! s:get_message(level) abort
   let l:counts = s:counts(a:level)
   let l:message = l:counts == 0 ? '' : printf('%s%d', s:indicator[a:level], l:counts)
   return l:message
+endfunction
+
+function! s:status(level) abort
+  if !s:linted()
+    return ''
+  endif
+  if s:skip_update_in_insert()
+    return s:message[a:level]
+  endif
+  let s:message[a:level] = s:get_message(a:level)
+  return s:message[a:level]
 endfunction
